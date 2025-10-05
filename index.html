@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background: #f4f6f8;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-container {
+            background: #fff;
+            padding: 2rem 2.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            width: 350px;
+        }
+        .login-container h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .login-container label {
+            display: block;
+            margin-bottom: 0.5rem;
+            margin-top: 1rem;
+        }
+        .login-container input, .login-container select {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .login-container button {
+            width: 100%;
+            padding: 0.7rem;
+            background: #1976d2;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .login-container button:hover {
+            background: #1565c0;
+        }
+        .toggle-link {
+            display: block;
+            text-align: center;
+            margin-top: 1rem;
+            color: #1976d2;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2 id="form-title">Login</h2>
+        <form id="auth-form">
+            <div id="role-group">
+                <label for="role">Login as:</label>
+                <select id="role" name="role" required>
+                    <option value="">Select Role</option>
+                    <option value="admin">Admin</option>
+                    <option value="customer">Customer</option>
+                </select>
+            </div>
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required autocomplete="username">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password">
+            <div id="signup-extra" style="display: none;">
+                <label for="confirm-password">Confirm Password</label>
+                <input type="password" id="confirm-password" name="confirm-password" autocomplete="new-password">
+            </div>
+            <button type="submit" id="submit-btn">Login</button>
+        </form>
+        <span class="toggle-link" id="toggle-link">Don't have an account? Sign up</span>
+    </div>
+    <script>
+        const formTitle = document.getElementById('form-title');
+        const authForm = document.getElementById('auth-form');
+        const toggleLink = document.getElementById('toggle-link');
+        const submitBtn = document.getElementById('submit-btn');
+        const signupExtra = document.getElementById('signup-extra');
+        const roleGroup = document.getElementById('role-group');
+        let isLogin = true;
+
+        toggleLink.addEventListener('click', () => {
+            isLogin = !isLogin;
+            if (isLogin) {
+                formTitle.textContent = 'Login';
+                submitBtn.textContent = 'Login';
+                toggleLink.textContent = "Don't have an account? Sign up";
+                signupExtra.style.display = 'none';
+                roleGroup.style.display = '';
+                document.getElementById('confirm-password').required = false;
+            } else {
+                formTitle.textContent = 'Sign Up';
+                submitBtn.textContent = 'Sign Up';
+                toggleLink.textContent = "Already have an account? Login";
+                signupExtra.style.display = '';
+                roleGroup.style.display = 'none';
+                document.getElementById('confirm-password').required = true;
+            }
+            authForm.reset();
+        });
+    </script>
+</body>
+</html>
