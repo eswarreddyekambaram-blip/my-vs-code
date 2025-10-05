@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fitness Coaching Dashboard</title>
+  <style>
+    /* Reset and base styles */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #f5f7fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #333;
+    }
+    h1, h2, h3, h4, h5 {
+      margin: 0;
+      font-weight: 900;
+    }
+    .dashboard {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #ff3b3f;
+      font-size: 2.5rem;
+      letter-spacing: 2px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+      gap: 1.5rem;
+    }
+
+    /* Widget base */
+    .widget {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(255, 59, 63, 0.15);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      font-weight: 700;
+    }
+    .widget h2 {
+      color: #ff3b3f;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+      border-bottom: 3px solid #ff3b3f;
+      padding-bottom: 0.25rem;
+    }
+
+    /* Daily Activity */
+    .activity-stats {
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+    }
+    .activity-stat {
+      flex: 1;
+      margin: 0 0.5rem;
+    }
+    .activity-stat h3 {
+      font-size: 3rem;
+      color: #ff6f61;
+    }
+    .activity-stat p {
+      margin-top: 0.25rem;
+      font-weight: 600;
+      color: #666;
+    }
+
+    /* Calendar */
+    .calendar {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .calendar th, .calendar td {
+      padding: 0.75rem;
+      border: 1px solid #eee;
+      text-align: center;
+      font-weight: 600;
+    }
+    .calendar th {
+      background: #ff3b3f;
+      color: white;
+      font-weight: 900;
+    }
+    .session-day {
+      background: #ffdad7;
+      cursor: pointer;
+      font-weight: 900;
+      color: #b22926;
+      border-radius: 4px;
+    }
+    .calendar td:hover.session-day {
+      background: #ff6f61;
+      color: white;
+    }
+
+    /* Client Progress Charts */
+    .chart-container {
+      flex: 1;
+      margin-top: 1rem;
+    }
+
+    /* Simple line chart using canvas */
+    canvas {
+      max-width: 100%;
+      border-radius: 8px;
+      background: #ffecec;
+      box-shadow: 0 2px 8px rgba(255, 59, 63, 0.15);
+    }
+
+    /* Message Inbox */
+    .message-list {
+      list-style: none;
+      padding: 0;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+    .message {
+      border-bottom: 1px solid #eee;
+      padding: 0.75rem 0;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .message:last-child {
+      border-bottom: none;
+    }
+    .message:hover {
+      background: #fff0f0;
+    }
+    .message .sender {
+      font-weight: 800;
+      color: #ff3b3f;
+    }
+    .message .subject {
+      font-weight: 600;
+      color: #555;
+    }
+    .message .time {
+      font-size: 0.8rem;
+      color: #999;
+    }
+
+    /* Scrollbar styling for message inbox */
+    .message-list::-webkit-scrollbar {
+      width: 8px;
+    }
+    .message-list::-webkit-scrollbar-thumb {
+      background-color: #ff3b3f;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <header class="header">FitForward Dashboard</header>
+
+    <div class="grid">
+
+      <!-- Daily Activity Widget -->
+      <section class="widget" aria-label="Daily Activity Tracking">
+        <h2>Daily Activity</h2>
+        <div class="activity-stats" role="list">
+          <div class="activity-stat" role="listitem">
+            <h3 id="steps-count">0</h3>
+            <p>Steps</p>
+          </div>
+          <div class="activity-stat" role="listitem">
+            <h3 id="calories-count">0</h3>
+            <p>Calories Burned</p>
+          </div>
+          <div class="activity-stat" role="listitem">
+            <h3 id="workouts-count">0</h3>
+            <p>Workouts</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Upcoming Sessions Calendar -->
+      <section class="widget" aria-label="Upcoming Sessions Calendar">
+        <h2>Upcoming Sessions</h2>
+        <table class="calendar" aria-describedby="calendar-desc">
+          <caption id="calendar-desc" style="text-align:left; font-weight:600; margin-bottom:0.5rem;">Monthly Calendar with upcoming coaching sessions highlighted.</caption>
+          <thead>
+            <tr>
+              <th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th>
+              <th>Thu</th><th>Fri</th><th>Sat</th>
+            </tr>
+          </thead>
+          <tbody id="calendar-body">
+            <!-- Dynamically filled by JS -->
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Client Progress Charts -->
+      <section class="widget" aria-label="Client Progress Charts">
+        <h2>Client Progress</h2>
+        <div class="chart-container">
+          <canvas id="progress-chart" width="400" height="200" aria-label="Line chart showing client progress over time"></canvas>
+        </div>
+      </section>
+
+      <!-- Message Inbox -->
+      <section class="widget" aria-label="Message Inbox">
+        <h2>Inbox</h2>
+        <ul class="message-list" id="message-list" role="list" tabindex="0" aria-live="polite">
+          <!-- Messages inserted by JavaScript -->
+        </ul>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+    // Sample data for demonstration
+    const dailyActivity = {
+      steps: 8540,
+      calories: 520,
+      workouts: 2
+    };
+
+    const sessions = [
+      { date: new Date(new Date().getFullYear(), new Date().getMonth(), 3), title: "Yoga Coaching" },
+      { date: new Date(new Date().getFullYear(), new Date().getMonth(), 12), title: "Strength Training" },
+      { date: new Date(new Date().getFullYear(), new Date().getMonth(), 19), title: "Nutrition Review" }
+    ];
+
+    const messages = [
+      { sender: "Coach Anna", subject: "Your progress is amazing!", time: "2h ago" },
+      { sender: "Client John", subject: "Question about diet plan", time: "1d ago" },
+      { sender: "Coach Mike", subject: "Upcoming session reminder", time: "3d ago" },
+      { sender: "Client Lisa", subject: "Feedback on workout", time: "5d ago" },
+    ];
+
+    // Update daily activity stats
+    document.getElementById('steps-count').textContent = dailyActivity.steps.toLocaleString();
+    document.getElementById('calories-count').textContent = dailyActivity.calories.toLocaleString();
+    document.getElementById('workouts-count').textContent = dailyActivity.workouts;
+
+    // Generate calendar for current month
+    function generateCalendar() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth();
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const calendarBody = document.getElementById('calendar-body');
+      calendarBody.innerHTML = '';
+
+      let date = 1;
+      // Weeks rows
+      for (let i = 0; i < 6; i++) {
+        let row = document.createElement('tr');
+
+        // Days in week
+        for (let j = 0; j < 7; j++) {
+          let cell = document.createElement('td');
+          if (i === 0 && j < firstDay.getDay()) {
+            cell.textContent = '';
+          } else if (date > lastDay.getDate()) {
+            cell.textContent = '';
+          } else {
+            cell.textContent = date;
+            // Check if date has a session
+            const sessionDate = new Date(year, month, date);
+            const hasSession = sessions.some(s => s.date.toDateString() === sessionDate.toDateString());
+            if (hasSession) {
+              cell.classList.add('session-day');
+              cell.title = sessions.find(s => s.date.toDateString() === sessionDate.toDateString()).title;
+            }
+            date++;
+          }
+          row.appendChild(cell);
+        }
+        calendarBody.appendChild(row);
+        if (date > lastDay.getDate()) {
+          break;
+        }
+      }
+    }
+    generateCalendar();
+
+    // Render simple line chart for client progress using Canvas API
+    const ctx = document.getElementById('progress-chart').getContext('2d');
+
+    // Dummy progress data representing progress scores over 7 weeks
+    const progressData = [15, 25, 40, 50, 65, 80, 95];
+    const progressMax = 100;
+
+    // Draw chart background and grid
+    function drawChart() {
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+      // Draw grid lines
+      ctx.strokeStyle = '#ffdad7';
+      ctx.lineWidth = 1;
+      const gridLines = 5;
+      for (let i = 0; i <= gridLines; i++) {
+        const y = (ctx.canvas.height / gridLines) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(ctx.canvas.width, y);
+        ctx.stroke();
+      }
+
+      // Draw axis labels
+      ctx.fillStyle = '#b22926';
+      ctx.font = 'bold 12px Segoe UI';
+      ctx.textAlign = 'right';
+      for (let i = 0; i <= gridLines; i++) {
+        const val = progressMax - (progressMax / gridLines) * i;
+        ctx.fillText(val, 35, (ctx.canvas.height / gridLines) * i - 4);
+      }
+      ctx.textAlign = 'center';
+      for (let i = 0; i < progressData.length; i++) {
+        ctx.fillText(`W${i+1}`, 80 + (i * 45), ctx.canvas.height - 10);
+      }
+
+      // Draw data line
+      ctx.strokeStyle = '#ff3b3f';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      progressData.forEach((val, index) => {
+        const x = 80 + index * 45;
+        const y = ctx.canvas.height - (val / progressMax) * ctx.canvas.height;
+        if (index === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+      ctx.stroke();
+
+      // Draw data points
+      ctx.fillStyle = '#ff6f61';
+      progressData.forEach((val, index) => {
+        const x = 80 + index * 45;
+        const y = ctx.canvas.height - (val / progressMax) * ctx.canvas.height;
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, 2 * Math.PI);
+        ctx.fill();
+      });
+    }
+    drawChart();
+
+    // Load messages into inbox
+    function loadMessages() {
+      const messageList = document.getElementById('message-list');
+      messages.forEach(msg => {
+        const li = document.createElement('li');
+        li.className = 'message';
+        li.tabIndex = 0;
+        li.innerHTML = `
+          <div class="sender">${msg.sender}</div>
+          <div class="subject">${msg.subject}</div>
+          <div class="time">${msg.time}</div>
+        `;
+        messageList.appendChild(li);
+      });
+    }
+    loadMessages();
+
+  </script>
+</body>
+</html>
